@@ -16,6 +16,7 @@ import { CONDENSE_PROMPT, QA_PROMPT } from "@/utils/prompts";
 import { callbackManager, makeChain } from "@/utils/langchain";
 
 const tableName = "documents_emp_hbk";
+const queryName = "match_documents_emp_hbk";
 
 const questionSchema = zod.object({
   question: zod.string(),
@@ -48,6 +49,7 @@ const vectorStore = await SupabaseVectorStore.fromExistingIndex(
 );
 
 vectorStore.tableName = tableName;
+vectorStore.queryName = queryName;
 
 const questionGenerator = new LLMChain({
   llm: model,
