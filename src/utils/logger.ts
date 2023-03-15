@@ -13,6 +13,22 @@ const logger = winston.createLogger({
       filename: "logs/info.log",
       level: "info",
     }),
+    new winston.transports.File({
+      filename: "logs/debug.log",
+      level: "debug",
+    }),
+    new winston.transports.File({
+      filename: "logs/verbose.log",
+      level: "verbose",
+    }),
+    new winston.transports.File({
+      filename: "logs/silly.log",
+      level: "silly",
+    }),
+    new winston.transports.File({
+      filename: "logs/warn.log",
+      level: "warn",
+    }),
   ],
 });
 

@@ -8,6 +8,9 @@ import { createClient } from "@supabase/supabase-js";
 import { z } from "zod";
 import multer from "multer";
 import fs from "fs";
+import { logger } from "@/utils/logger";
+
+const tableName = "documents_emp_hbk";
 
 const fileSchema = z.object({
   filename: z.string(),
@@ -57,11 +60,25 @@ const handler: NextApiHandler = nc<CustomNextApiRequest, NextApiResponse>({
 
     const output = await splitter.splitDocuments(docs);
 
-    console.log(output.length);
+    await output.forEach((doc) => {
+      doc.metadata = {
+        filename: req.file.filename,
+      };
+    });
 
-    await SupabaseVectorStore.fromDocuments(supabaseClient, output, embeddings);
+    const store = new SupabaseVectorStore(supabaseClient, embeddings, {
+      tableName,
+    });
+
+    await store.addDocuments(output);
 
     fs.unlinkSync("./pdfs/uploads/" + req.file.filename);
+
+    logger.info({
+      message: `${output.length} segments uploaded`,
+      filename: req.file.filename,
+      tableName,
+    });
 
     return res.json({ message: `${output.length} segments uploaded` });
   });
