@@ -33,7 +33,7 @@ const openAIApiKey = process.env.OPENAI_API_KEY;
 const model = new OpenAI({
   openAIApiKey,
   temperature: 0,
-  // callbackManager, // did this change?
+  callbackManager,
   modelName: "gpt-3.5-turbo",
 });
 
@@ -55,6 +55,12 @@ const questionGenerator = new LLMChain({
 });
 const docChain = loadQAChain(model, { prompt: QA_PROMPT });
 
+// const chain = new ChatVectorDBQAChain({
+//   vectorStore,
+//   combineDocumentsChain: docChain,
+//   questionGeneratorChain: questionGenerator,
+// })
+// ??? pulling in makeChain (example above) into this file doesn't work for some reason.
 const chain = makeChain(vectorStore, docChain, questionGenerator);
 
 // Endpoints Start Here
@@ -68,6 +74,7 @@ const handler: NextApiHandler = nc<NextApiRequest, NextApiResponse>({
     res.status(404).end("Method not allowed");
   },
 }).post(async (req, res) => {
+  // POST
   questionSchema.parse(req.body);
   const { question, history } = req.body;
   const sanitizedQuestion = question.trim().replaceAll("\n", " ");
