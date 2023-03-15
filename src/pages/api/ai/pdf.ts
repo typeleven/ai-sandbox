@@ -47,7 +47,6 @@ const handler: NextApiHandler = nc<CustomNextApiRequest, NextApiResponse>({
       process.env.SERVICE_ROLE_KEY || ""
     );
 
-    const embeddings = new OpenAIEmbeddings();
     const loader = new PDFLoader(
       ("./pdfs/uploads/" + req.file.filename) as string
     );
@@ -66,11 +65,15 @@ const handler: NextApiHandler = nc<CustomNextApiRequest, NextApiResponse>({
       };
     });
 
-    const store = new SupabaseVectorStore(supabaseClient, embeddings, {
-      tableName,
-    });
+    const vectorStore = new SupabaseVectorStore(
+      supabaseClient,
+      new OpenAIEmbeddings(),
+      {
+        tableName,
+      }
+    );
 
-    await store.addDocuments(output);
+    await vectorStore.addDocuments(output);
 
     fs.unlinkSync("./pdfs/uploads/" + req.file.filename);
 
