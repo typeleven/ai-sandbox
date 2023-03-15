@@ -1,20 +1,75 @@
 import { NextApiHandler, NextApiRequest, NextApiResponse } from "next";
 import nc from "next-connect";
+import { PDFLoader } from "langchain/document_loaders";
+import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
+import { SupabaseVectorStore } from "langchain/vectorstores";
+import { OpenAIEmbeddings } from "langchain/embeddings";
+import { createClient } from "@supabase/supabase-js";
+import { z } from "zod";
+import multer from "multer";
+import fs from "fs";
 
-const handler: NextApiHandler = nc<NextApiRequest, NextApiResponse>({
+const fileSchema = z.object({
+  filename: z.string(),
+});
+
+const upload = multer({
+  storage: multer.diskStorage({
+    destination: "./pdfs/uploads",
+    filename: (req, file, cb) => cb(null, file.originalname),
+  }),
+});
+
+interface CustomNextApiRequest extends NextApiRequest {
+  file: {
+    filename: string;
+  };
+}
+
+const handler: NextApiHandler = nc<CustomNextApiRequest, NextApiResponse>({
   onError: (err, req, res, next) => {
     console.error(err.stack);
-    res.status(500).end("Something broke!");
+    return res.status(500).json(err);
   },
   onNoMatch: (req, res) => {
-    res.status(404).end("Page is not found");
+    res.status(404).end("Method not allowed");
   },
 })
-  .get((req, res) => {
-    res.send("Hello world");
-  })
-  .post((req, res) => {
-    res.json({ method: "post" });
+  .use(upload.single("file"))
+  .post(async (req, res) => {
+    fileSchema.parse(req.file);
+
+    const supabaseClient = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL || "",
+      process.env.SERVICE_ROLE_KEY || ""
+    );
+
+    const embeddings = new OpenAIEmbeddings();
+    const loader = new PDFLoader(
+      ("./pdfs/uploads/" + req.file.filename) as string
+    );
+    const docs = await loader.load();
+
+    const splitter = new RecursiveCharacterTextSplitter({
+      chunkSize: 1500,
+      chunkOverlap: 20,
+    });
+
+    const output = await splitter.splitDocuments(docs);
+
+    console.log(output.length);
+
+    await SupabaseVectorStore.fromDocuments(supabaseClient, output, embeddings);
+
+    fs.unlinkSync("./pdfs/uploads/" + req.file.filename);
+
+    return res.json({ message: `${output.length} segments uploaded` });
   });
 
 export default handler;
+
+export const config = {
+  api: {
+    bodyParser: false,
+  },
+};
