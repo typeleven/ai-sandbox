@@ -6,20 +6,30 @@ import {
   LangChainTracer,
   ConsoleCallbackHandler,
 } from "langchain/callbacks";
+import { LLMResult } from "langchain/dist/schema";
 
-const callbackManager = new CallbackManager();
-callbackManager.handleLLMStart = async (..._args) => {
-  logger.verbose({
-    _source: ["callbackManager", "handleLLMStart", "request"],
-    payload: _args,
-  });
-};
-callbackManager.handleLLMEnd = async (..._args) => {
-  logger.verbose({
-    _source: ["callbackManager", "handleLLMEnd", "response"],
-    payload: _args,
-  });
-};
+const callbackManager = CallbackManager.fromHandlers({
+  async handleLLMEnd(output: LLMResult) {
+    logger.verbose({
+      _source: ["callbackManager", "fromHandlers", "handleLLMEnd", "response"],
+      payload: output,
+      usage: output.llmOutput?.tokenUsage,
+    });
+  },
+});
+
+// callbackManager.handleLLMStart = async (..._args) => {
+//   logger.verbose({
+//     _source: ["callbackManager", "handleLLMStart", "request"],
+//     payload: _args,
+//   });
+// };
+// callbackManager.handleLLMEnd = async (..._args) => {
+//   logger.verbose({
+//     _source: ["callbackManager", "handleLLMEnd", "response"],
+//     payload: _args,
+//   });
+// };
 
 const makeChain = (
   vectorstore: SupabaseVectorStore,
