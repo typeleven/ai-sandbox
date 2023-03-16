@@ -22,6 +22,7 @@ const questionSchema = zod.object({
   question: zod.string(),
 });
 
+// for later when we want to add history
 const historySchema = zod.array(
   zod.object({
     role: zod.string(),
@@ -43,13 +44,13 @@ const supabaseClient = createClient(
   process.env.SERVICE_ROLE_KEY || ""
 );
 
-const vectorStore = await SupabaseVectorStore.fromExistingIndex(
-  supabaseClient,
-  new OpenAIEmbeddings()
-);
+const embeddings = new OpenAIEmbeddings();
 
-vectorStore.tableName = tableName;
-vectorStore.queryName = queryName;
+const vectorStore = await SupabaseVectorStore.fromExistingIndex(embeddings, {
+  client: supabaseClient,
+  tableName,
+  queryName,
+});
 
 const questionGenerator = new LLMChain({
   llm: model,

@@ -10,6 +10,7 @@ import { LLMResult } from "langchain/dist/schema";
 
 const callbackManager = CallbackManager.fromHandlers({
   async handleLLMEnd(output: LLMResult) {
+    console.log("handleLLMEnd", output);
     logger.verbose({
       _source: ["callbackManager", "fromHandlers", "handleLLMEnd", "response"],
       payload: output,
@@ -17,6 +18,8 @@ const callbackManager = CallbackManager.fromHandlers({
     });
   },
 });
+
+// disabled until we can figure out how to get the token usage working
 
 // callbackManager.handleLLMStart = async (..._args) => {
 //   logger.verbose({
