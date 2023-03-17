@@ -6,11 +6,7 @@ import { OpenAI, LLMChain } from "langchain";
 import { createClient } from "@supabase/supabase-js";
 import { SupabaseVectorStore } from "langchain/vectorstores";
 import { OpenAIEmbeddings } from "langchain/embeddings";
-import {
-  ChatVectorDBQAChain,
-  loadQAChain,
-  VectorDBQAChain,
-} from "langchain/chains";
+import { loadQAChain } from "langchain/chains";
 
 import { CONDENSE_PROMPT, QA_PROMPT } from "@/utils/prompts";
 import { callbackManager, makeChain } from "@/utils/langchain";
