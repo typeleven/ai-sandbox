@@ -36,7 +36,7 @@ const callbackManagerStream = (onTokenStream) =>
       });
     },
     async handleLLMNewToken(token: string) {
-      onTokenStream(token, false); // the 2nd argument controls if the stream is logged
+      onTokenStream(token, true); // the 2nd argument controls if the stream is logged
     },
   });
 

@@ -93,7 +93,7 @@ const handler: NextApiHandler = nc<NextApiRequest, NextApiResponse>({
   };
 
   // initial stream
-  sendData("[START STREAM]");
+  sendData("");
 
   try {
     //Ask a question and stream the response

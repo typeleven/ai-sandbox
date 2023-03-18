@@ -8,6 +8,13 @@ import Image from 'next/image';
 import ReactMarkdown from 'react-markdown';
 import LoadingDots from 'components/ui/LoadingDots';
 
+import axios from 'axios';
+
+import { AiFillRobot } from 'react-icons/ai';
+import { IoPerson } from 'react-icons/io5';
+
+
+
 export default function Home() {
   const [query, setQuery] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
@@ -62,9 +69,9 @@ export default function Home() {
     setMessageState((state) => ({ ...state, pending: '' }));
 
     const ctrl = new AbortController();
-
+    console.log('question', question)
     try {
-      fetchEventSource('/api/chat', {
+      fetchEventSource('/api/ai/emp-hbk-stream', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -75,7 +82,8 @@ export default function Home() {
         }),
         signal: ctrl.signal,
         onmessage: (event) => {
-          if (event.data === '[DONE]') {
+          console.log('data', event.data)
+          if (event.data === '[END STREAM]') {
             setMessageState((state) => ({
               history: [...state.history, [question, state.pending ?? '']],
               messages: [
@@ -90,10 +98,10 @@ export default function Home() {
             setLoading(false);
             ctrl.abort();
           } else {
-            const data = JSON.parse(event.data);
+            const data = event.data;
             setMessageState((state) => ({
               ...state,
-              pending: (state.pending ?? '') + data.data,
+              pending: (state.pending ?? '') + data,
             }));
           }
         },
@@ -123,10 +131,7 @@ export default function Home() {
   return (
     <>
       <Layout>
-        <div className="mx-auto flex flex-col gap-4">
-          <h1 className="text-2xl font-bold leading-[1.1] tracking-tighter text-center">
-            Treace Employee Resource ChatBot
-          </h1>
+        <div className="mx-auto flex">
           <main className={styles.main}>
             <div className={styles.cloud}>
               <div ref={messageListRef} className={styles.messagelist}>
@@ -135,26 +140,12 @@ export default function Home() {
                   let className;
                   if (message.type === 'apiMessage') {
                     icon = (
-                      <Image
-                        src="/Thomas-Frank-Avatar.jpg"
-                        alt="AI"
-                        width="40"
-                        height="40"
-                        className={styles.boticon}
-                        priority
-                      />
+                      <AiFillRobot className='m-3 mr-5' />
                     );
                     className = styles.apimessage;
                   } else {
                     icon = (
-                      <Image
-                        src="/usericon.png"
-                        alt="Me"
-                        width="30"
-                        height="30"
-                        className={styles.usericon}
-                        priority
-                      />
+                      <IoPerson className='m-3 mr-5' />
                     );
                     // The latest message sent by the user will be animated while waiting for a response
                     className =
@@ -207,13 +198,7 @@ export default function Home() {
                       </div>
                     ) : (
                       // Send icon SVG in input field
-                      <svg
-                        viewBox="0 0 20 20"
-                        className={styles.svgicon}
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"></path>
-                      </svg>
+                      <>SEND</>
                     )}
                   </button>
                 </form>
@@ -221,11 +206,7 @@ export default function Home() {
             </div>
           </main>
         </div>
-        <footer className="m-auto">
-          <a href="https://twitter.com/mayowaoshin">
-            Powered by LangChain. Demo built by Mayo (Twitter: @mayowaoshin).
-          </a>
-        </footer>
+
       </Layout>
     </>
   );
