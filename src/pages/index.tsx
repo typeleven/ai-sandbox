@@ -4,9 +4,6 @@ import { fetchEventSource } from '@microsoft/fetch-event-source';
 
 function classNames(...classes) { return classes.filter(Boolean).join(' '); }
 
-
-
-
 const MessagesSection = ({ children }) => { return (<div id="messages" className="flex flex-1 flex-col-reverse p-3 overflow-y-auto scrollbar-thumb-blue scrollbar-thumb-rounded scrollbar-track-blue-lighter scrollbar-w-2 scrolling-touch">{children}</div>) }
 
 const Message = ({ children, type, image = null }) => {
@@ -29,7 +26,7 @@ const Message = ({ children, type, image = null }) => {
   )
 }
 
-const InputSection = ({ setMessageState, setIsLoading, setConversation }
+const InputSection = ({ setIsLoading, setConversation, conversation }
 ) => {
   const inputElement = useRef(null);
   const [query, setQuery] = useState('')
@@ -75,15 +72,14 @@ const InputSection = ({ setMessageState, setIsLoading, setConversation }
         },
         body: JSON.stringify({
           question,
-          history,
+          history: conversation.history,
         }),
         signal: ctrl.signal,
         // Handle Message Event START
         onmessage: (event) => {
-          console.log('data', event.data)
           if (event.data === '[END STREAM]') {
             setConversation((state) => ({
-              history: [...state.history, [question]],
+              history: [...state.history, `User: ${question}`, `Treace Bot: ${state.pending ?? ''}`],
               messages: [
                 ...state.messages,
                 {
@@ -91,6 +87,7 @@ const InputSection = ({ setMessageState, setIsLoading, setConversation }
                   message: state.pending ?? '',
                 },
               ],
+              pending: undefined,
             }));
             setIsLoading(false);
             ctrl.abort();
@@ -141,15 +138,8 @@ const Layout = ({ children }) => {
 }
 
 const Component = (props) => {
-  const [conversation, setConversation] = useState({ messages: [], history: [] })
+  const [conversation, setConversation] = useState({ messages: [], history: [], pending: undefined })
   const [isLoading, setIsLoading] = useState(false)
-  const [messageState, setMessageState] = useState({
-    messages: [],
-    pending: undefined,
-    history: [],
-  });
-
-
   return (
     <>
       {/* Main Container */}
@@ -158,19 +148,18 @@ const Component = (props) => {
         <div className="flex w-full sm:px-6 lg:px-8">
           <Layout>
             <MessagesSection>
-              <PulseLoader color="#808080" size={7} className="pl-3" loading={isLoading} />
+              <PulseLoader color="#808080" size={7} className="pl-3" loading={isLoading && !conversation.pending} />
+              {conversation.pending && <Message type='apiMessage'> {conversation.pending} </Message>}
               {conversation && conversation.messages.slice(0).reverse().map((message: any, index) => (
                 <Message key={index} type={message.type} image={message.image}> {message.message} </Message>
               ))}
-
             </MessagesSection>
-            <InputSection {...{ setMessageState, messageState, setIsLoading, setConversation }} />
+            <InputSection {...{ setIsLoading, setConversation, conversation }} />
           </Layout >
         </div>
       </div>
     </>
   )
-
 }
 
 export default Component

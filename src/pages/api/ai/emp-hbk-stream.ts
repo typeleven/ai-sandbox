@@ -1,13 +1,11 @@
 import nc from "next-connect";
 import zod from "zod";
-
 import { NextApiHandler, NextApiRequest, NextApiResponse } from "next";
 import { OpenAI, LLMChain } from "langchain";
 import { createClient } from "@supabase/supabase-js";
 import { SupabaseVectorStore } from "langchain/vectorstores";
 import { OpenAIEmbeddings } from "langchain/embeddings";
 import { loadQAChain } from "langchain/chains";
-
 import { CONDENSE_PROMPT, QA_PROMPT } from "@/utils/prompts";
 import {
   callbackManager,
@@ -15,8 +13,6 @@ import {
   makeChain,
 } from "@/utils/langchain";
 import { logger } from "@/utils/logger";
-import { CallbackManager } from "langchain/callbacks";
-import { LLMResult } from "langchain/dist/schema";
 
 const tableName = "documents_emp_hbk";
 const queryName = "match_documents_emp_hbk";
@@ -41,9 +37,7 @@ const vectorStore = await SupabaseVectorStore.fromExistingIndex(embeddings, {
   tableName,
   queryName,
 });
-
 // Endpoints Start Here
-
 const handler: NextApiHandler = nc<NextApiRequest, NextApiResponse>({
   onError: (err, req, res, next) => {
     console.error(err.stack);
@@ -57,24 +51,6 @@ const handler: NextApiHandler = nc<NextApiRequest, NextApiResponse>({
   questionSchema.parse(req.body);
   const { question, history } = req.body;
   const sanitizedQuestion = question.trim().replaceAll("\n", " ");
-  const callbackManager = CallbackManager.fromHandlers({
-    async handleLLMEnd(output: LLMResult) {
-      console.log("handleLLMEnd", output);
-      logger.verbose({
-        _source: [
-          "callbackManager",
-          "fromHandlers",
-          "handleLLMEnd",
-          "response",
-        ],
-        payload: output,
-        usage: output.llmOutput?.tokenUsage,
-      });
-    },
-    async handleLLMNewToken(token: string) {
-      console.log({ token });
-    },
-  });
   // open stream
   res.writeHead(200, {
     "Content-Type": "text/event-stream",
@@ -91,10 +67,8 @@ const handler: NextApiHandler = nc<NextApiRequest, NextApiResponse>({
     }
     res.write(`data: ${data}\n\n`);
   };
-
   // initial stream
   sendData("");
-
   try {
     //Ask a question and stream the response
     const model = new OpenAI({
@@ -104,9 +78,17 @@ const handler: NextApiHandler = nc<NextApiRequest, NextApiResponse>({
       streaming: true,
       modelName: "gpt-3.5-turbo",
     });
+    //Ask a question and stream the response
+    const q_model = new OpenAI({
+      openAIApiKey,
+      temperature: 0,
+      callbackManager,
+      streaming: false,
+      modelName: "gpt-3.5-turbo",
+    });
 
     const questionGenerator = new LLMChain({
-      llm: model,
+      llm: q_model,
       prompt: CONDENSE_PROMPT,
     });
     const docChain = loadQAChain(model, { prompt: QA_PROMPT });
