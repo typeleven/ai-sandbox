@@ -1,6 +1,14 @@
 import { useEffect, useRef, useState } from 'react'
 import { PulseLoader } from 'react-spinners'
 import { fetchEventSource } from '@microsoft/fetch-event-source';
+import { createBrowserSupabaseClient } from '@supabase/auth-helpers-nextjs'
+const supabaseClient = createBrowserSupabaseClient()
+import { useUser } from '@supabase/auth-helpers-react'
+import { Auth } from '@supabase/auth-ui-react'
+import { ThemeSupa } from '@supabase/auth-ui-shared'
+import router from 'next/router';
+import { supabase } from '@/utils/supabase'
+
 
 function classNames(...classes) { return classes.filter(Boolean).join(' '); }
 
@@ -140,6 +148,24 @@ const Layout = ({ children }) => {
 const Component = (props) => {
   const [conversation, setConversation] = useState({ messages: [], history: [], pending: undefined })
   const [isLoading, setIsLoading] = useState(false)
+  const user = useUser()
+
+  console.log('user', user)
+
+  // if (!user)
+  //   return (
+  //     <div className="flex flex-col items-center justify-center h-screen w-screen">
+  //       <div className="flex flex-col items-center justify-center">
+  //         <p className="text-gray-600 text-center">Please sign in to continue</p>
+  //         <Auth
+  //           supabaseClient={supabase}
+  //           appearance={{ theme: ThemeSupa }}
+  //           providers={[]}
+  //         />
+  //       </div>
+  //     </div>
+  //   )
+
   return (
     <>
       {/* Main Container */}
@@ -155,6 +181,14 @@ const Component = (props) => {
               ))}
             </MessagesSection>
             <InputSection {...{ setIsLoading, setConversation, conversation }} />
+            {/* <button
+              onClick={async () => {
+                await supabaseClient.auth.signOut()
+                router.push('/')
+              }}
+            >
+              Logout
+            </button> */}
           </Layout >
         </div>
       </div>
