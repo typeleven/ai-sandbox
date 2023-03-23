@@ -145,7 +145,7 @@ const Layout = ({ children }) => {
   return (<div className="flex-1 p:2 sm:p-6 justify-between flex flex-col h-screen">{children}</div>)
 }
 
-const Component = (props) => {
+const Component = ({ access }) => {
   const [conversation, setConversation] = useState({ messages: [], history: [], pending: undefined })
   const [isLoading, setIsLoading] = useState(false)
   const user = useUser()
@@ -165,6 +165,10 @@ const Component = (props) => {
   //       </div>
   //     </div>
   //   )
+
+  if (!access) {
+    return <div className='text-2xl p-12'>Access Denied</div>
+  }
 
   return (
     <>
@@ -194,6 +198,18 @@ const Component = (props) => {
       </div>
     </>
   )
+}
+
+export async function getServerSideProps(context) {
+  const { query: { auth } } = context
+  if (!auth) {
+    return { props: { access: false } }
+  }
+  const access = auth === process.env.ACCESS_TOKEN
+
+  return {
+    props: { access },
+  }
 }
 
 export default Component
