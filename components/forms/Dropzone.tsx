@@ -6,7 +6,8 @@ import { HiX } from 'react-icons/hi'
 
 // import ImageLightbox from './ImageLightbox'
 
-import { classNames } from '@lib/helper'
+function classNames(...classes) { return classes.filter(Boolean).join(' '); }
+
 
 const FilePreview = ({ file, deleteFile }) => {
 	const imagesType = ['image/png', 'image/jpg', 'image/jpeg']

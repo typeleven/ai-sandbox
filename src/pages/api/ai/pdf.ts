@@ -11,6 +11,7 @@ import fs from "fs";
 import { logger } from "@/utils/logger";
 
 const tableName = "documents_emp_hbk";
+const queryName = "match_documents_emp_hbk";
 
 const fileSchema = z.object({
   filename: z.string(),
@@ -65,13 +66,11 @@ const handler: NextApiHandler = nc<CustomNextApiRequest, NextApiResponse>({
       };
     });
 
-    const vectorStore = new SupabaseVectorStore(
-      supabaseClient,
-      new OpenAIEmbeddings(),
-      {
-        tableName,
-      }
-    );
+    const vectorStore = new SupabaseVectorStore(new OpenAIEmbeddings(), {
+      client: supabaseClient,
+      queryName,
+      tableName,
+    });
 
     await vectorStore.addDocuments(output);
 
