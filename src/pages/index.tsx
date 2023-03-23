@@ -34,7 +34,7 @@ const Message = ({ children, type, image = null }) => {
   )
 }
 
-const InputSection = ({ setIsLoading, setConversation, conversation }
+const InputSection = ({ setIsLoading, setConversation, conversation, auth }
 ) => {
   const inputElement = useRef(null);
   const [query, setQuery] = useState('')
@@ -76,6 +76,7 @@ const InputSection = ({ setIsLoading, setConversation, conversation }
       fetchEventSource('/api/ai/emp-hbk-stream', {
         method: 'POST',
         headers: {
+          'Authorization': auth,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
@@ -145,7 +146,7 @@ const Layout = ({ children }) => {
   return (<div className="flex-1 p:2 sm:p-6 justify-between flex flex-col h-screen">{children}</div>)
 }
 
-const Component = ({ access }) => {
+const Component = ({ access, auth }) => {
   const [conversation, setConversation] = useState({ messages: [], history: [], pending: undefined })
   const [isLoading, setIsLoading] = useState(false)
   const user = useUser()
@@ -184,15 +185,7 @@ const Component = ({ access }) => {
                 <Message key={index} type={message.type} image={message.image}> {message.message} </Message>
               ))}
             </MessagesSection>
-            <InputSection {...{ setIsLoading, setConversation, conversation }} />
-            {/* <button
-              onClick={async () => {
-                await supabaseClient.auth.signOut()
-                router.push('/')
-              }}
-            >
-              Logout
-            </button> */}
+            <InputSection {...{ setIsLoading, setConversation, conversation, auth }} />
           </Layout >
         </div>
       </div>
@@ -208,7 +201,7 @@ export async function getServerSideProps(context) {
   const access = auth === process.env.ACCESS_TOKEN
 
   return {
-    props: { access },
+    props: { access, auth },
   }
 }
 

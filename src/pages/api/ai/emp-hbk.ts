@@ -73,7 +73,10 @@ const handler: NextApiHandler = nc<NextApiRequest, NextApiResponse>({
     res.status(404).end("Method not allowed");
   },
 }).post(async (req, res) => {
-  // POST
+  const { authorization } = req.headers;
+  const access = authorization === process.env.ACCESS_TOKEN;
+  if (!access) return res.status(401).json({ message: "Unauthorized" });
+
   questionSchema.parse(req.body);
   const { question, history } = req.body;
   const sanitizedQuestion = question.trim().replaceAll("\n", " ");
