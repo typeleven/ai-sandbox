@@ -1,40 +1,50 @@
 import winston from "winston";
 
-const winston_logger = winston.createLogger({
+const logger = winston.createLogger({
   level: "info",
   format: winston.format.json(),
   defaultMeta: { service: "user-service" },
-  transports: [
+});
+
+const isDev = process.env.NODE_ENV === "development";
+
+if (isDev) {
+  logger.add(
     new winston.transports.File({
       filename: "logs/error.log",
       level: "error",
-    }),
+    })
+  );
+  logger.add(
     new winston.transports.File({
       filename: "logs/info.log",
       level: "info",
-    }),
+    })
+  );
+  logger.add(
     new winston.transports.File({
       filename: "logs/debug.log",
       level: "debug",
-    }),
+    })
+  );
+  logger.add(
     new winston.transports.File({
       filename: "logs/verbose.log",
       level: "verbose",
-    }),
+    })
+  );
+  logger.add(
     new winston.transports.File({
       filename: "logs/silly.log",
       level: "silly",
-    }),
+    })
+  );
+  logger.add(
     new winston.transports.File({
       filename: "logs/warn.log",
       level: "warn",
-    }),
-  ],
-});
-
-const no_logger = (props: any) => {};
-
-const logger =
-  process.env.NODE_ENV !== "production" ? winston_logger : no_logger;
+    })
+  );
+}
 
 export { logger };
