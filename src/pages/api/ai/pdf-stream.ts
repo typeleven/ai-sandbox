@@ -65,25 +65,40 @@ const handler: NextApiHandler = nc<CustomNextApiRequest, NextApiResponse>({
         filename: req.file.filename,
       };
     });
+
+    
     //***************************************************//
-    // Can't figure out how to use the supabase client
-    const query = "insurance";
+    // 
+
+    const dbConfig = {
+      client: supabaseClient,
+      tableName: tableName,
+      embeddingColumnName: 'embedding',
+      metadataColumnName: 'metadata',
+    }
+
+
+    const query = ["insurance"];
     const embeddings = new OpenAIEmbeddings();
-    const vectorStore = new SupabaseVectorStore( embeddings,{
-        supabaseClient,
-        tableName,
-        query,
-      }
-    );
+    // const vectorStore = new SupabaseVectorStore.fromTexts( embeddings,{
+    //     supabaseClient,
+    //     tableName,
+    //     query,
+    //   }
+    // );
+    const vectorStore = await SupabaseVectorStore.fromTexts(query, output, embeddings, dbConfig);
 
     //**************************************************//
     //******************SIMILARITY SEARCH****************//
     // logs out top 10 Search Results from above 0.9 
     const queryVector = [0.9, 1.0];
     const k = 10;
-    const count = await vectorStore.similaritySearchWithScore(query, queryVector, k);
-    console.log(count);
+    const countVector = await vectorStore.similaritySearchWithScore(query, queryVector, k);
+    console.log(countVector);
     
+    const queryString = "FMLA"
+    const similarityCount = await vectorStore.similaritySearch(queryString, k);
+    console.log(similarityCount);
     //**************************************************//
 
 
