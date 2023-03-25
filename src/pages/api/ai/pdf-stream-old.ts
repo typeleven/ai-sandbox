@@ -10,7 +10,6 @@ import multer from "multer";
 import fs from "fs";
 import { logger } from "@/utils/logger";
 
-
 const tableName = "documents_emp_hbk";
 
 const fileSchema = z.object({
@@ -66,7 +65,6 @@ const handler: NextApiHandler = nc<CustomNextApiRequest, NextApiResponse>({
 
     const text = await splitter.splitDocuments(docs);
     console.log(text);
-
 
     // await output.forEach((doc) => {
     //   doc.metadata = {
