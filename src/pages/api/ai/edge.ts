@@ -1,4 +1,3 @@
-import { NextRequest } from "next/server";
 import { OpenAIStream } from "@/utils/open_ai_stream";
 
 export const config = {
