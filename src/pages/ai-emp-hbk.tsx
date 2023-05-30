@@ -151,21 +151,6 @@ const Component = ({ access, auth }) => {
   const [isLoading, setIsLoading] = useState(false)
   const user = useUser()
 
-  console.log('user', user)
-
-  // if (!user)
-  //   return (
-  //     <div className="flex flex-col items-center justify-center h-screen w-screen">
-  //       <div className="flex flex-col items-center justify-center">
-  //         <p className="text-gray-600 text-center">Please sign in to continue</p>
-  //         <Auth
-  //           supabaseClient={supabase}
-  //           appearance={{ theme: ThemeSupa }}
-  //           providers={[]}
-  //         />
-  //       </div>
-  //     </div>
-  //   )
 
   if (!access) {
     return <div className='text-2xl p-12'>Access Denied</div>
